@@ -1,0 +1,201 @@
+disease,medicine,age,weight,dosage_mg,frequency_per_day,notes
+Diabetes,Metformin,,106.7,1000,2,Take with meals
+Infection,Amoxicillin,45.0,99.6,850,3,Take as directed by physician
+Hypertension,Amlodipine,19.0,92.2,2,1,Take as directed by physician
+Fever,Paracetamol,15.0,,1000,4,Take as directed by physician
+Fever,Paracetamol,14.0,100.0,1000,3,Take as directed by physician
+Infection,Amoxicillin,67.0,,875,2,Take as directed by physician
+Fever,Paracetamol,8.0,64.1,950,4,Use pediatric formulation
+Fever,Paracetamol,4.0,4.8,375,4,Use pediatric formulation
+Hypertension,Amlodipine,77.0,77.0,2,1,Take as directed by physician
+Fever,Paracetamol,3.0,14.0,450,2,Use pediatric formulation
+Diabetes,Metformin,76.0,96.2,1000,2,Take with meals
+Diabetes,Metformin,7.0,43.9,725,2,Take with meals
+Infection,Amoxicillin,36.0,83.4,725,3,Take as directed by physician
+Fever,Paracetamol,23.0,106.4,975,1,Take as directed by physician
+Asthma,Salbutamol,,69.4,350,4,Use inhaler as needed for symptoms
+Diabetes,Metformin,86.0,20.8,875,2,Take with meals
+Asthma,Salbutamol,29.0,118.2,400,3,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,47.0,87.3,2,1,Take as directed by physician
+Asthma,Salbutamol,37.0,97.0,350,3,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,52.0,86.2,2,1,Take as directed by physician
+Asthma,Salbutamol,81.0,59.0,325,2,Use inhaler as needed for symptoms
+Infection,Amoxicillin,,113.4,825,3,Take as directed by physician
+Infection,Amoxicillin,35.0,17.4,875,4,Take as directed by physician
+Diabetes,Metformin,13.0,7.8,975,2,Take with meals
+Hypertension,Amlodipine,78.0,69.5,2,1,Take as directed by physician
+Asthma,Salbutamol,27.0,99.8,400,3,Use inhaler as needed for symptoms
+Diabetes,Metformin,67.0,98.6,1000,2,Take with meals
+Infection,Amoxicillin,45.0,25.2,875,1,Take as directed by physician
+Infection,Amoxicillin,20.0,99.3,875,4,Take as directed by physician
+Diabetes,Metformin,65.0,59.3,1000,2,Take with meals
+Asthma,Salbutamol,70.0,54.1,350,2,Use inhaler as needed for symptoms
+Infection,Amoxicillin,39.0,,700,1,Take as directed by physician
+Fever,Paracetamol,,49.1,950,4,Take as directed by physician
+Fever,Paracetamol,27.0,,1000,1,Take as directed by physician
+Diabetes,Metformin,32.0,67.3,875,2,Take with meals
+Asthma,Salbutamol,47.0,91.6,375,4,Use inhaler as needed for symptoms
+Asthma,Salbutamol,13.0,13.7,400,3,Use inhaler as needed for symptoms
+Fever,Paracetamol,53.0,55.3,1000,4,Take as directed by physician
+Hypertension,Amlodipine,15.0,70.8,2,1,Take as directed by physician
+Infection,Amoxicillin,13.0,61.8,750,3,Take as directed by physician
+Fever,Paracetamol,80.0,110.0,950,3,Take as directed by physician
+Asthma,Salbutamol,,14.0,400,3,Use inhaler as needed for symptoms
+Infection,Amoxicillin,39.0,35.2,875,3,Take as directed by physician
+Hypertension,Amlodipine,79.0,74.3,2,1,Take as directed by physician
+Infection,Amoxicillin,,37.1,700,3,Take as directed by physician
+Infection,Amoxicillin,83.0,107.9,875,4,Take as directed by physician
+Asthma,Salbutamol,44.0,61.9,400,2,Use inhaler as needed for symptoms
+Infection,Amoxicillin,7.0,,575,4,Use pediatric formulation
+Diabetes,Metformin,34.0,104.6,1000,2,Take with meals
+Fever,Paracetamol,66.0,58.9,975,1,Take as directed by physician
+Asthma,Salbutamol,11.0,98.8,400,3,Use inhaler as needed for symptoms
+Diabetes,Metformin,6.0,14.6,400,2,Take with meals
+Asthma,Salbutamol,81.0,58.9,400,3,Use inhaler as needed for symptoms
+Fever,Paracetamol,68.0,16.7,1000,4,Take as directed by physician
+Hypertension,Amlodipine,71.0,6.3,2,1,Take as directed by physician
+Hypertension,Amlodipine,25.0,,2,1,Take as directed by physician
+Infection,Amoxicillin,80.0,76.6,850,2,Take as directed by physician
+Fever,Paracetamol,39.0,7.1,900,4,Take as directed by physician
+Hypertension,Amlodipine,58.0,,2,1,Take as directed by physician
+Diabetes,Metformin,13.0,41.6,900,2,Take with meals
+Asthma,Salbutamol,,39.2,400,2,Use inhaler as needed for symptoms
+Infection,Amoxicillin,53.0,4.5,700,4,Take as directed by physician
+Diabetes,Metformin,26.0,,925,2,Take with meals
+Fever,Paracetamol,58.0,7.4,1000,1,Take as directed by physician
+Diabetes,Metformin,32.0,71.2,950,2,Take with meals
+Fever,Paracetamol,36.0,7.7,875,2,Take as directed by physician
+Asthma,Salbutamol,8.0,65.0,375,4,Use inhaler as needed for symptoms
+Asthma,Salbutamol,23.0,42.4,400,2,Use inhaler as needed for symptoms
+Fever,Paracetamol,12.0,36.1,1000,4,Take as directed by physician
+Asthma,Salbutamol,21.0,59.9,350,3,Use inhaler as needed for symptoms
+Diabetes,Metformin,68.0,,1000,2,Take with meals
+Fever,Paracetamol,,82.4,1000,1,Take as directed by physician
+Infection,Amoxicillin,39.0,85.0,875,3,Take as directed by physician
+Infection,Amoxicillin,63.0,,725,1,Take as directed by physician
+Diabetes,Metformin,47.0,91.2,800,2,Take with meals
+Infection,Amoxicillin,17.0,19.8,775,2,Take as directed by physician
+Fever,Paracetamol,10.0,35.9,675,1,Use pediatric formulation
+Infection,Amoxicillin,69.0,106.5,875,4,Take as directed by physician
+Hypertension,Amlodipine,12.0,5.4,2,1,Take as directed by physician
+Diabetes,Metformin,81.0,73.7,1000,2,Take with meals
+Hypertension,Amlodipine,34.0,,2,1,Take as directed by physician
+Fever,Paracetamol,73.0,74.4,1000,4,Take as directed by physician
+Asthma,Salbutamol,20.0,34.4,400,2,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,49.0,28.4,2,1,Take as directed by physician
+Fever,Paracetamol,53.0,100.2,850,2,Take as directed by physician
+Infection,Amoxicillin,2.0,10.1,350,2,Use pediatric formulation
+Hypertension,Amlodipine,58.0,62.6,2,1,Take as directed by physician
+Asthma,Salbutamol,,99.2,325,2,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,44.0,24.3,2,1,Take as directed by physician
+Infection,Amoxicillin,78.0,,875,3,Take as directed by physician
+Fever,Paracetamol,19.0,8.6,975,1,Take as directed by physician
+Diabetes,Metformin,11.0,85.6,1000,2,Take with meals
+Hypertension,Amlodipine,69.0,19.5,2,1,Take as directed by physician
+Fever,Paracetamol,14.0,31.6,900,1,Take as directed by physician
+Infection,Amoxicillin,85.0,,725,2,Take as directed by physician
+Infection,Amoxicillin,40.0,98.5,875,4,Take as directed by physician
+Asthma,Salbutamol,,,400,3,Use inhaler as needed for symptoms
+Fever,Paracetamol,22.0,,850,2,Take as directed by physician
+Fever,Paracetamol,28.0,79.4,950,3,Take as directed by physician
+Diabetes,Metformin,15.0,82.6,825,2,Take with meals
+Infection,Amoxicillin,80.0,98.6,875,3,Take as directed by physician
+Infection,Amoxicillin,42.0,34.4,875,3,Take as directed by physician
+Infection,Amoxicillin,58.0,,750,3,Take as directed by physician
+Fever,Paracetamol,73.0,105.4,875,3,Take as directed by physician
+Hypertension,Amlodipine,76.0,68.2,2,1,Take as directed by physician
+Infection,Amoxicillin,89.0,67.1,875,4,Take as directed by physician
+Diabetes,Metformin,51.0,55.7,1000,2,Take with meals
+Hypertension,Amlodipine,25.0,70.6,2,1,Take as directed by physician
+Diabetes,Metformin,63.0,71.3,975,2,Take with meals
+Asthma,Salbutamol,31.0,,400,4,Use inhaler as needed for symptoms
+Asthma,Salbutamol,89.0,41.0,400,4,Use inhaler as needed for symptoms
+Asthma,Salbutamol,52.0,43.0,400,4,Use inhaler as needed for symptoms
+Diabetes,Metformin,84.0,,875,2,Take with meals
+Asthma,Salbutamol,19.0,,375,3,Use inhaler as needed for symptoms
+Diabetes,Metformin,75.0,88.7,1000,2,Take with meals
+Fever,Paracetamol,17.0,67.1,1000,2,Take as directed by physician
+Infection,Amoxicillin,37.0,111.5,825,1,Take as directed by physician
+Hypertension,Amlodipine,62.0,42.0,2,1,Take as directed by physician
+Asthma,Salbutamol,19.0,89.3,400,2,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,81.0,2.8,2,1,Take as directed by physician
+Hypertension,Amlodipine,,58.2,2,1,Take as directed by physician
+Asthma,Salbutamol,39.0,80.5,375,3,Use inhaler as needed for symptoms
+Fever,Paracetamol,58.0,72.1,875,1,Take as directed by physician
+Hypertension,Amlodipine,35.0,119.6,2,1,Take as directed by physician
+Infection,Amoxicillin,21.0,,875,2,Take as directed by physician
+Infection,Amoxicillin,77.0,55.1,725,1,Take as directed by physician
+Fever,Paracetamol,2.0,10.5,425,2,Use pediatric formulation
+Asthma,Salbutamol,34.0,,325,2,Use inhaler as needed for symptoms
+Diabetes,Metformin,24.0,8.4,1000,2,Take with meals
+Infection,Amoxicillin,27.0,,875,1,Take as directed by physician
+Diabetes,Metformin,61.0,13.2,800,2,Take with meals
+Hypertension,Amlodipine,,21.8,2,1,Take as directed by physician
+Hypertension,Amlodipine,,55.7,2,1,Take as directed by physician
+Asthma,Salbutamol,69.0,101.7,400,2,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,71.0,71.5,2,1,Take as directed by physician
+Fever,Paracetamol,64.0,12.2,1000,4,Take as directed by physician
+Asthma,Salbutamol,72.0,34.4,400,2,Use inhaler as needed for symptoms
+Fever,Paracetamol,,68.4,1000,3,Take as directed by physician
+Infection,Amoxicillin,,44.5,725,2,Take as directed by physician
+Infection,Amoxicillin,6.0,7.0,300,1,Use pediatric formulation
+Fever,Paracetamol,53.0,28.0,850,4,Take as directed by physician
+Infection,Amoxicillin,33.0,79.6,700,3,Take as directed by physician
+Infection,Amoxicillin,14.0,92.7,750,3,Take as directed by physician
+Asthma,Salbutamol,25.0,,400,4,Use inhaler as needed for symptoms
+Asthma,Salbutamol,57.0,115.3,325,4,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,41.0,27.7,2,1,Take as directed by physician
+Asthma,Salbutamol,84.0,33.2,400,3,Use inhaler as needed for symptoms
+Infection,Amoxicillin,5.0,100.0,875,4,Use pediatric formulation
+Hypertension,Amlodipine,80.0,112.3,2,1,Take as directed by physician
+Fever,Paracetamol,75.0,47.2,1000,1,Take as directed by physician
+Asthma,Salbutamol,32.0,115.3,400,4,Use inhaler as needed for symptoms
+Infection,Amoxicillin,10.0,87.3,875,3,Use pediatric formulation
+Fever,Paracetamol,62.0,119.8,925,3,Take as directed by physician
+Fever,Paracetamol,2.0,,675,1,Use pediatric formulation
+Diabetes,Metformin,28.0,92.2,1000,2,Take with meals
+Fever,Paracetamol,36.0,23.4,925,2,Take as directed by physician
+Asthma,Salbutamol,32.0,80.9,400,3,Use inhaler as needed for symptoms
+Fever,Paracetamol,57.0,21.4,1000,2,Take as directed by physician
+Fever,Paracetamol,86.0,50.9,800,2,Take as directed by physician
+Fever,Paracetamol,44.0,89.9,875,4,Take as directed by physician
+Fever,Paracetamol,44.0,14.7,825,1,Take as directed by physician
+Hypertension,Amlodipine,83.0,14.3,2,1,Take as directed by physician
+Diabetes,Metformin,,95.8,800,2,Take with meals
+Hypertension,Amlodipine,,,2,1,Take as directed by physician
+Diabetes,Metformin,43.0,79.7,1000,2,Take with meals
+Hypertension,Amlodipine,48.0,55.3,2,1,Take as directed by physician
+Infection,Amoxicillin,81.0,,800,1,Take as directed by physician
+Hypertension,Amlodipine,56.0,6.0,2,1,Take as directed by physician
+Infection,Amoxicillin,50.0,9.2,875,4,Take as directed by physician
+Infection,Amoxicillin,24.0,119.7,875,3,Take as directed by physician
+Fever,Paracetamol,,11.2,1000,1,Take as directed by physician
+Diabetes,Metformin,,28.1,850,2,Take with meals
+Infection,Amoxicillin,19.0,52.4,875,3,Take as directed by physician
+Infection,Amoxicillin,37.0,12.2,825,3,Take as directed by physician
+Asthma,Salbutamol,83.0,8.4,400,2,Use inhaler as needed for symptoms
+Diabetes,Metformin,55.0,87.3,1000,2,Take with meals
+Infection,Amoxicillin,30.0,58.0,750,2,Take as directed by physician
+Diabetes,Metformin,38.0,,1000,2,Take with meals
+Diabetes,Metformin,25.0,102.7,1000,2,Take with meals
+Hypertension,Amlodipine,17.0,2.8,2,1,Take as directed by physician
+Hypertension,Amlodipine,9.0,34.6,2,1,Take as directed by physician
+Diabetes,Metformin,88.0,,900,2,Take with meals
+Hypertension,Amlodipine,18.0,26.5,2,1,Take as directed by physician
+Diabetes,Metformin,77.0,,1000,2,Take with meals
+Asthma,Salbutamol,47.0,39.5,400,3,Use inhaler as needed for symptoms
+Fever,Paracetamol,9.0,22.7,550,3,Use pediatric formulation
+Asthma,Salbutamol,83.0,,325,2,Use inhaler as needed for symptoms
+Hypertension,Amlodipine,,31.3,2,1,Take as directed by physician
+Fever,Paracetamol,15.0,41.2,1000,3,Take as directed by physician
+Fever,Paracetamol,40.0,20.1,900,3,Take as directed by physician
+Infection,Amoxicillin,48.0,99.1,875,2,Take as directed by physician
+Diabetes,Metformin,21.0,106.2,1000,2,Take with meals
+Hypertension,Amlodipine,24.0,58.9,2,1,Take as directed by physician
+Hypertension,Amlodipine,31.0,38.6,2,1,Take as directed by physician
+Asthma,Salbutamol,20.0,65.0,375,3,Use inhaler as needed for symptoms
+Fever,Paracetamol,26.0,37.4,1000,2,Take as directed by physician
+Asthma,Salbutamol,21.0,70.3,375,3,Use inhaler as needed for symptoms
+Asthma,Salbutamol,12.0,50.5,400,3,Use inhaler as needed for symptoms
+Asthma,Salbutamol,,98.7,375,3,Use inhaler as needed for symptoms
+Infection,Amoxicillin,52.0,55.9,725,4,Take as directed by physician
