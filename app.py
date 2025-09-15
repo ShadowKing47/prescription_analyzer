@@ -3,15 +3,24 @@ import os
 from PIL import Image
 import tempfile
 from datetime import datetime
+from pathlib import Path
+
+# Try to import the chatbot
 from chatbot import DrugDosageChatbot
+USING_ENHANCED = True
+print("Using enhanced chatbot with independent Gemini interface")
 
 # Set page config
 st.set_page_config(
-    page_title="Drug Dosage Explanation Chatbot",
+    page_title="Drug Dosage Explanation",
     page_icon="💊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Add pages directory
+PAGES_DIR = Path(__file__).parent / "pages"
+PAGES_DIR.mkdir(exist_ok=True)
 
 # Custom CSS for better styling
 st.markdown("""
@@ -62,20 +71,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-def toggle_chat():
-    """Toggle the chat visibility state."""
-    st.session_state.chat_visible = not st.session_state.chat_visible
-
 def initialize_session_state():
     """Initialize all session state variables needed for the app."""
+    # Initialize chat-related states
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
     if 'current_prediction' not in st.session_state:
         st.session_state.current_prediction = None
-    if 'chat_visible' not in st.session_state:
-        st.session_state.chat_visible = False
-    if 'last_question' not in st.session_state:
-        st.session_state.last_question = ""
+    if 'page' not in st.session_state:
+        st.session_state.page = "home"
+    if 'chatbot' not in st.session_state:
+        # Initialize the chatbot with hardcoded API key
+        gemini_api_key = "AIzaSyCxhduD3UiOU1gFSqwMonmW6ItTBcSMEIw"  # Temporary hardcoded key for testing
+        st.session_state.chatbot = DrugDosageChatbot(gemini_api_key=gemini_api_key)
 
 def add_message(question, answer):
     """Add a message to the chat history."""
@@ -89,96 +97,58 @@ def clear_chat_history():
     """Clear the chat history."""
     st.session_state.chat_history = []
 
-def show_chat_interface(prediction, chatbot):
-    """Display the chat interface and history."""
-    # Chat interface container
-    chat_container = st.container()
-    
-    with chat_container:
-        # Display chat history
-        if st.session_state.chat_history:
-            for chat in st.session_state.chat_history:
-                # User message
-                with st.container():
-                    st.markdown(f"<div style='background-color: #E8F0FE; padding: 10px; border-radius: 10px; margin-bottom: 10px;'>"
-                                f"<strong>You:</strong> {chat['question']}"
-                                f"</div>", unsafe_allow_html=True)
-                
-                # Assistant message
-                with st.container():
-                    st.markdown(f"<div style='background-color: #F0F2F6; padding: 10px; border-radius: 10px; margin-bottom: 20px;'>"
-                                f"<strong>Assistant:</strong> {chat['answer']}"
-                                f"</div>", unsafe_allow_html=True)
-        
-        # Clear chat button
-        if st.session_state.chat_history:
-            if st.button("Clear Chat History", key="clear_chat"):
-                st.session_state.chat_history = []
-                st.experimental_rerun()
-    
-    # Chat input
-    with st.form(key="chat_message_form"):
-        user_question = st.text_area(
-            "Ask a question about your prescription:",
-            placeholder="E.g., What are typical dosage ranges for my condition?",
-            key="chat_input_field",
-            height=100
-        )
-        
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            submitted = st.form_submit_button("Send", use_container_width=True)
-        
-        if submitted and user_question:
-            # Process the question
-            with st.spinner("Getting information from AI assistant..."):
-                try:
-                    # Check if Gemini is available
-                    if chatbot.gemini is None:
-                        answer = "The AI assistant is not available. Please check your Gemini API key configuration."
-                    else:
-                        # Get response from Gemini
-                        answer = chatbot.gemini.chat_about_prescription(
-                            patient_data=st.session_state.current_prediction.raw_input,
-                            user_query=user_question
-                        )
-                    
-                    # Add the Q&A to chat history
-                    st.session_state.chat_history.append({
-                        "question": user_question,
-                        "answer": answer,
-                        "timestamp": datetime.now().strftime("%H:%M:%S")
-                    })
-                    
-                except Exception as e:
-                    error_msg = str(e)
-                    # Add error message to chat history
-                    st.session_state.chat_history.append({
-                        "question": user_question,
-                        "answer": f"⚠️ I encountered an error while processing your question: {error_msg}\n\nPlease try rephrasing your question or asking something else.",
-                        "timestamp": datetime.now().strftime("%H:%M:%S")
-                    })
-                
-                # Rerun to display the new message
-                st.experimental_rerun()
+def show_chat_button():
+    """Display a button to navigate to the chat page."""
+    if st.button("💬 Chat with Prescription Assistant", use_container_width=True, type="primary"):
+        # Store the current page to return to
+        st.session_state.previous_page = "home"
+        # Switch to chat page
+        st.session_state.page = "chat"
+        st.rerun()
 
 def initialize_chatbot():
-    """Initialize the chatbot with Gemini API key from environment variables."""
-    gemini_api_key = os.getenv('GEMINI_API_KEY')
-    return DrugDosageChatbot(gemini_api_key=gemini_api_key)
+    """Initialize the chatbot with hardcoded API key temporarily."""
+    gemini_api_key = "AIzaSyCxhduD3UiOU1gFSqwMonmW6ItTBcSMEIw"  # Temporary hardcoded key for testing
+    chatbot = DrugDosageChatbot(gemini_api_key=gemini_api_key)
+    
+    if USING_ENHANCED:
+        st.sidebar.success("✅ Using enhanced chatbot with independent Gemini interface")
+    else:
+        st.sidebar.info("ℹ️ Using original chatbot implementation")
+        
+    return chatbot
 
 def display_sidebar():
-    """Display the sidebar with app information."""
-    st.sidebar.title("💊 About")
+    """Display the sidebar with app information and navigation."""
+    st.sidebar.title("💊 Navigation")
+    
+    # Navigation menu
+    page = st.sidebar.radio(
+        "Go to",
+        ["🏠 Home", "💬 Chat with Assistant"],
+        index=0 if st.session_state.get('page') == "home" else 1
+    )
+    
+    # Update page state based on selection
+    if page == "🏠 Home" and st.session_state.page != "home":
+        st.session_state.page = "home"
+        st.rerun()
+    elif page == "💬 Chat with Assistant" and st.session_state.page != "chat":
+        st.session_state.page = "chat"
+        st.rerun()
+    
+    st.sidebar.markdown("---")
+    st.sidebar.title("About")
     st.sidebar.markdown(
         """
-        **Drug Dosage Explanation Chatbot** helps you understand your medication dosage 
+        **Drug Dosage Explanation** helps you understand your medication dosage 
         based on your prescription and health information.
         
         ### How it works:
         1. Upload a prescription image or enter details manually
         2. The system processes the information
         3. Get dosage recommendations with explanations
+        4. Chat with the assistant for any questions
         
         ### Supported Medications:
         - Metformin (Diabetes)
@@ -253,30 +223,11 @@ def display_prediction(prediction, chatbot):
     st.markdown("### ⚠️ Important Safety Information")
     st.warning(prediction.safety_notes)
     
-    # Determine if chat should be offered/visible
-    show_chat_offer = (prediction.predicted_dosage == 0 or 
-                       (hasattr(prediction, 'confidence') and prediction.confidence < 0.5))
-    
     # Store the current prediction in session state for chat
     st.session_state.current_prediction = prediction
     
-    # Chat section
-    st.markdown("### 💬 Medical Information")
-    
-    # Chat toggle button - always visible
-    if not st.session_state.chat_visible:
-        message = "Chat with Medical Assistant"
-        if show_chat_offer:
-            st.info("You can ask our AI assistant for more information about your condition and medication.")
-    else:
-        message = "Close Chat"
-        
-    # Button to toggle chat visibility
-    st.button(message, key="toggle_chat", on_click=toggle_chat)
-    
-    # Show chat interface if visible
-    if st.session_state.chat_visible:
-        show_chat_interface(prediction, chatbot)
+    # Show chat button
+    show_chat_button()
     
     # Disclaimer
     st.markdown("---")
@@ -286,20 +237,13 @@ def display_prediction(prediction, chatbot):
     before starting or changing any medication regimen.*
     """)
 
-def main():
-    """Main function to run the Streamlit app."""
-    # Initialize session state
-    initialize_session_state()
-    
-    # Initialize the chatbot
-    chatbot = initialize_chatbot()
-    
-    # Display the sidebar
-    display_sidebar()
-    
-    # Main content
+def show_home_page():
+    """Show the home page with prescription upload and manual entry options."""
     st.title("💊 Drug Dosage Explanation Chatbot")
     st.markdown("Upload a prescription image or enter details below to get dosage information.")
+    
+    # Initialize the chatbot
+    chatbot = st.session_state.chatbot
     
     # Create tabs for different input methods
     tab1, tab2 = st.tabs(["📷 Upload Prescription", "✍️ Enter Details Manually"])
@@ -359,81 +303,58 @@ def main():
                 medicine = st.text_input(
                     "Medication",
                     value=medicine_map.get(disease, ""),
-                    disabled=bool(disease),
-                    help="Medication name (auto-filled based on condition)"
                 )
                 
-                # Weight input
-                weight = st.number_input(
-                    "Weight (kg)", 
-                    min_value=1.0, 
-                    max_value=300.0, 
-                    value=None,
-                    step=0.1,
-                    help="Your weight in kilograms"
-                )
+                weight = st.number_input("Weight (kg)", min_value=10, max_value=300, value=70)
             
-            # Frequency input
-            frequency = st.selectbox(
-                "Frequency per day",
-                ["", "Once daily", "Twice daily", "Three times daily", "Four times daily"],
-                help="How often you take the medication"
-            )
+            frequency = st.number_input("Frequency per day", min_value=1, max_value=4, value=1)
             
-            # Additional notes
-            notes = st.text_area(
-                "Additional Notes",
-                placeholder="Any other relevant information about your prescription...",
-                help="Optional: Add any other details about your prescription"
-            )
-            
-            # Submit button
             submitted = st.form_submit_button("Get Dosage Recommendation")
             
             if submitted:
-                if not disease:
-                    st.error("Please select a medical condition.")
+                if not disease or not medicine:
+                    st.error("Please select both disease and medicine.")
                 else:
-                    # Process the form data
-                    frequency_map = {
-                        "Once daily": 1,
-                        "Twice daily": 2,
-                        "Three times daily": 3,
-                        "Four times daily": 4
-                    }
-                    
-                    input_data = {
-                        'disease': disease.lower(),
-                        'medicine': medicine.lower(),
-                        'age': age,
-                        'weight': weight,
-                        'frequency_per_day': frequency_map.get(frequency, 1),
-                        'notes': notes
-                    }
-                    
                     try:
-                        # Get prediction
-                        with st.spinner("Analyzing your information..."):
-                            prediction = chatbot.predict_dosage(input_data)
+                        # Create input data dictionary
+                        input_data = {
+                            'disease': disease.lower(),
+                            'medicine': medicine.lower(),
+                            'age': age,
+                            'weight': weight,
+                            'frequency_per_day': frequency
+                        }
+                        
+                        # Make prediction
+                        prediction = st.session_state.chatbot.predict_dosage(input_data)
+                        st.session_state.current_prediction = prediction
                         
                         # Display the prediction
-                        display_prediction(prediction, chatbot)
+                        display_prediction(prediction, st.session_state.chatbot)
+                        
+                        # Show chat button after successful prediction
+                        show_chat_button()
                         
                     except Exception as e:
-                        st.error(f"An error occurred: {str(e)}")
-                        st.info("Please check your input and try again.")
+                        st.error(f"Error: {str(e)}")
+                        st.rerun()
+
+def main():
+    """Main function to run the Streamlit app."""
+    # Initialize session state
+    initialize_session_state()
     
-    # Add a footer
-    st.markdown("---")
-    st.markdown(
-        """
-        <div style="text-align: center; color: gray; font-size: 0.9em;">
-            <p>This tool is for informational purposes only and does not provide medical advice.</p>
-            <p>Always consult with a qualified healthcare provider for medical advice.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    # Display the sidebar
+    display_sidebar()
+    
+    # Show the appropriate page based on state
+    if st.session_state.page == "chat":
+        # Import and run the chat page
+        from pages.chat import main as chat_main
+        chat_main()
+    else:
+        # Show home page
+        show_home_page()
 
 if __name__ == "__main__":
     main()

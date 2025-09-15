@@ -303,7 +303,7 @@ if __name__ == "__main__":
     model.train("synthetic_disease_dosage.csv")
     
     # Save model
-    model.save_model("dosage_predictor.joblib")
+    model.save_model("models/dosage_predictor.joblib")
     
     # Example prediction
     sample_input = {

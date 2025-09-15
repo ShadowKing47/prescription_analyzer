@@ -1,6 +1,6 @@
-# Drug Dosage Explanation Chatbot
+# Drug Dosage Explanation and Medical Assistant
 
-An intelligent chatbot that explains medication dosages based on prescription information, powered by machine learning and natural language processing.
+An intelligent healthcare application that explains medication dosages based on prescription information and provides medical assistance through a dual-mode chat interface.
 
 ## Features
 
@@ -9,6 +9,9 @@ An intelligent chatbot that explains medication dosages based on prescription in
 - **Explainable AI**: Understand why a particular dosage was recommended
 - **User-friendly Interface**: Simple web interface built with Streamlit
 - **Multiple Input Methods**: Upload prescription images or enter details manually
+- **Dual-Mode Medical Assistant**: 
+  - **Independent Mode**: Ask general medical questions without requiring a prescription
+  - **Enhanced Mode**: Get personalized answers based on your prescription data
 
 ## Prerequisites
 
@@ -49,35 +52,49 @@ An intelligent chatbot that explains medication dosages based on prescription in
 
 ## Usage
 
-### 1. Generate Synthetic Data (Optional)
+### Quick Start
 
-If you want to generate a new synthetic dataset:
-
-```bash
-python data_generator.py
-```
-
-This will create a `synthetic_disease_dosage.csv` file.
-
-### 2. Train the Model
-
-Train the dosage prediction model:
+The easiest way to run the application is using the launcher script:
 
 ```bash
-python train_model.py
+python run_app.py
 ```
 
-This will train a Random Forest model and save it as `models/dosage_predictor.joblib`.
+This script will:
+1. Check if your Gemini API key is set
+2. Install required dependencies
+3. Start the Streamlit application
 
-### 3. Run the Web Application
+### Manual Setup
 
-Start the Streamlit web application:
+1. **Set up Google Gemini API**:
+   - Get an API key from [Google AI Studio](https://aistudio.google.com/)
+   - Set it as an environment variable:
+     ```bash
+     # Windows (PowerShell)
+     $env:GEMINI_API_KEY="your-api-key-here"
+     
+     # Windows (Command Prompt)
+     set GEMINI_API_KEY=your-api-key-here
+     
+     # Linux/Mac
+     export GEMINI_API_KEY=your-api-key-here
+     ```
 
-```bash
-streamlit run app.py
-```
+2. **Generate Synthetic Data** (Optional):
+   ```bash
+   python data_generator.py
+   ```
 
-Then open your web browser and navigate to `http://localhost:8501`.
+3. **Train the Model** (Optional):
+   ```bash
+   python train_model.py
+   ```
+
+4. **Run the Web Application**:
+   ```bash
+   streamlit run app.py
+   ```
 
 ## How to Use
 
@@ -96,17 +113,51 @@ Then open your web browser and navigate to `http://localhost:8501`.
    - Expand the explanation to understand how the recommendation was made
    - Review important safety information
 
+4. **Chat with Medical Assistant**:
+   - Click on "Chat with Medical Assistant" 
+   - Ask questions about your prescription if one is loaded
+   - Ask general medical questions even without a prescription
+
 ## Project Structure
 
 - `app.py`: Streamlit web application
-- `chatbot.py`: Main chatbot logic and prediction pipeline
+- `enhanced_chatbot.py`: Improved chatbot with independent Gemini interface
+- `independent_gemini.py`: Standalone Gemini interface for general medical queries
+- `chatbot.py`: Original chatbot logic and prediction pipeline
+- `gemini_chat.py`: Original Gemini chat implementation
 - `data_generator.py`: Script to generate synthetic prescription data
 - `train_model.py`: Script to train the dosage prediction model
 - `xai_module.py`: Explainable AI functionality using SHAP
+- `xai_module_simple.py`: Simplified XAI when SHAP is not available
 - `ocr_parser.py`: OCR and text processing for prescription images
-- `requirements.txt`: Python dependencies
+- `pages/chat.py`: Streamlit chat interface page
+- `run_app.py`: Launcher script with dependency checks
 - `models/`: Directory for trained models
 - `data/`: Directory for datasets (not included in version control)
+
+## Architecture
+
+### Dual-Mode Medical Assistant
+
+The application provides two modes of operation:
+
+1. **Independent Mode**:
+   - Can answer general medical questions without requiring a prescription
+   - Uses Google's Gemini API to generate responses
+   - Works even when no prescription data is available
+
+2. **Enhanced Mode**:
+   - Provides personalized answers based on prescription data
+   - Incorporates patient-specific information in responses
+   - Leverages the dosage prediction model for more accurate advice
+
+### Graceful Degradation
+
+The system is designed to handle missing components gracefully:
+
+- If SHAP is not available, it falls back to a simplified explainer
+- If no prescription data is available, it still provides general medical advice
+- If OCR fails on a prescription image, it allows manual entry of data
 
 ## Customization
 

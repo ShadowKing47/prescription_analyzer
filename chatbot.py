@@ -2,10 +2,32 @@ import os
 import joblib
 import numpy as np
 import pandas as pd
+import streamlit as st
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
-from xai_module import DosageExplainer, get_safety_notes
+
+# Try to import from the original module with SHAP
+try:
+    from xai_module import DosageExplainer, get_safety_notes
+    print("Using SHAP-based XAI module")
+except ImportError:
+    try:
+        # If SHAP is not available, try installing it
+        import subprocess
+        import sys
+        print("SHAP not found. Attempting to install SHAP...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "shap"])
+        from xai_module import DosageExplainer, get_safety_notes
+        print("Successfully installed and imported SHAP-based XAI module")
+    except Exception as e:
+        # If installation fails, use simplified version
+        print(f"Could not install SHAP: {str(e)}. Using simplified XAI module.")
+        from xai_module_simple import DosageExplainer, get_safety_notes
+
 from ocr_parser import PrescriptionParser
+
+# Import our independent Gemini interface
+from independent_gemini import MedicalAssistant
 
 @dataclass
 class DosagePrediction:
@@ -24,7 +46,7 @@ class DrugDosageChatbot:
     Main chatbot class for drug dosage explanation and prediction.
     """
     
-    def __init__(self, model_path: str = 'dosage_predictor.joblib', 
+    def __init__(self, model_path: str = 'models/dosage_predictor.joblib', 
                  gemini_api_key: Optional[str] = None):
         """
         Initialize the chatbot with the trained model and optional Gemini API key.
@@ -44,11 +66,10 @@ class DrugDosageChatbot:
             model.save_model(model_path)
             self.model = model.model
             
-        # Initialize Gemini if API key is provided
+        # Initialize the medical assistant (which includes both Gemini interfaces)
         self.gemini = None
         if gemini_api_key:
-            from gemini_chat import GeminiHealthAssistant
-            self.gemini = GeminiHealthAssistant(gemini_api_key)
+            self.gemini = MedicalAssistant(gemini_api_key)
         
         # Initialize the explainer
         self.explainer = DosageExplainer(model_path)
@@ -114,6 +135,22 @@ class DrugDosageChatbot:
             raw_input=raw_input
         )
     
+    def chat_about_prescription(self, user_query: str, patient_data: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Get a response about a medical question, with optional prescription data.
+        
+        Args:
+            user_query: The user's question
+            patient_data: Optional dictionary with prescription data
+            
+        Returns:
+            Response from the medical assistant
+        """
+        if self.gemini is None:
+            return "The AI assistant is not available. Please check your Gemini API key configuration."
+        
+        return self.gemini.ask_question(user_query, patient_data)
+    
     def process_prescription_image(self, image_path: str) -> DosagePrediction:
         """
         Process a prescription image and predict dosage.
@@ -125,58 +162,98 @@ class DrugDosageChatbot:
             DosagePrediction object with prediction and explanation
         """
         try:
-            # Parse the prescription
+            # Parse the prescription using OCR
+            print("Starting prescription parsing...")
             parsed_data = self.parser.parse_prescription(image_path)
             
-            # Extract dosage information
-            dosage_info = self.parser.extract_dosage_info(parsed_data)
+            # Always display what we found, even if incomplete
+            st.write("📋 OCR Analysis Results:")
             
-            # If we couldn't extract enough information
-            if 'error' in dosage_info:
-                return DosagePrediction(
-                    disease="Unknown",
-                    medicine="Unknown",
-                    predicted_dosage=0,
-                    frequency_per_day=1,
-                    explanation="Could not extract sufficient information from the prescription.",
-                    safety_notes="Please consult your healthcare provider for dosage information.",
-                    raw_input={"image_path": image_path, "parsed_data": parsed_data}
-                )
+            # Display extracted text by lines
+            if parsed_data.get('lines'):
+                st.write("📝 Extracted Lines:")
+                for line in parsed_data['lines']:
+                    st.write(f"- {line}")
             
-            # Standardize the extracted features
-            standardized_data = {
-                'disease': str(dosage_info.get('disease', '')).lower(),
-                'medicine': str(dosage_info.get('medicine', '')).lower(),
-                'age': float(dosage_info.get('age', 0)) if dosage_info.get('age') else None,
-                'weight': float(dosage_info.get('weight', 0)) if dosage_info.get('weight') else None,
-                'frequency_per_day': int(dosage_info.get('frequency_per_day', 1))
-            }
+            # Display structured information
+            extracted = parsed_data.get('extracted_items', {})
             
-            # Make prediction with the standardized data
-            return self.predict_dosage(standardized_data)
+            # Medicines found
+            if extracted.get('possible_medicines'):
+                st.write("💊 Possible Medicines Detected:")
+                for med in extracted['possible_medicines']:
+                    st.write(f"- {med}")
             
-        except ValueError as e:
-            # Handle specific validation errors
-            return DosagePrediction(
-                disease=str(dosage_info.get('disease', 'Unknown')),
-                medicine=str(dosage_info.get('medicine', 'Unknown')),
-                predicted_dosage=0,
-                frequency_per_day=1,
-                explanation=f"Error processing prescription: {str(e)}",
-                safety_notes="Please consult your healthcare provider for accurate dosage information.",
-                raw_input={"image_path": image_path, "parsed_data": parsed_data, "error": str(e)}
-            )
+            # Diseases/conditions found
+            if extracted.get('possible_diseases'):
+                st.write("🏥 Possible Conditions Detected:")
+                for disease in extracted['possible_diseases']:
+                    st.write(f"- {disease}")
+            
+            # Dosages found
+            if extracted.get('possible_dosages'):
+                st.write("⚖️ Possible Dosages Detected:")
+                for dosage in extracted['possible_dosages']:
+                    st.write(f"- {dosage}")
+            
+            # Dates found
+            if extracted.get('dates'):
+                st.write("📅 Dates Found:")
+                for date in extracted['dates']:
+                    st.write(f"- {date}")
+            
+            # Names found
+            if extracted.get('possible_names'):
+                st.write("👤 Possible Names Detected:")
+                for name in extracted['possible_names']:
+                    st.write(f"- {name}")
+            
+            st.write("---")
+            
+            # Check if we have enough information for prediction
+            if not parsed_data.get('disease') and not parsed_data.get('medicines'):
+                st.warning("⚠️ Could not identify condition or medicines clearly. Please verify the information above and enter details manually if needed.")
+                
+                # Try to get at least the disease from the raw text
+                if 'raw_ocr_text' in parsed_data:
+                    disease = self.parser.extract_disease_from_text(parsed_data['raw_ocr_text'])
+                    if disease:
+                        parsed_data['disease'] = disease
+                        st.success(f"✅ Found condition: {disease}")
+            
+            # If we still don't have enough information
+            if not parsed_data.get('disease'):
+                raise ValueError("Could not identify the condition. Please check the extracted information above and enter details manually.")
+            
+            # Create prediction with whatever information we have
+            prediction = self.predict_dosage(parsed_data)
+            
+            # Add the raw OCR text and extracted data to the prediction for reference
+            prediction.ocr_data = parsed_data
+            
+            return prediction
+            
         except Exception as e:
-            # Handle unexpected errors
-            return DosagePrediction(
-                disease="Unknown",
-                medicine="Unknown",
-                predicted_dosage=0,
-                frequency_per_day=1,
-                explanation=f"Unexpected error processing prescription: {str(e)}",
-                safety_notes="Please consult your healthcare provider for dosage information.",
-                raw_input={"image_path": image_path, "error": str(e)}
-            )
+            st.error(f"⚠️ {str(e)}")
+            st.info("Please ensure:")
+            st.write("1. The image is clear and well-lit")
+            st.write("2. Text is readable and not blurry")
+            st.write("3. The prescription contains disease/condition information")
+            
+            # If we have any extracted data, show it even in case of error
+            if 'parsed_data' in locals() and parsed_data.get('extracted_items'):
+                st.write("Here's what we could extract from the image:")
+                for category, items in parsed_data['extracted_items'].items():
+                    if items:
+                        st.write(f"{category.replace('_', ' ').title()}:")
+                        for item in items:
+                            st.write(f"- {item}")
+            
+            raise ValueError("Could not process the prescription image. Please enter details manually.")
+            
+        except Exception as e:
+            print(f"Unexpected error processing prescription: {str(e)}")
+            raise
     
     def _preprocess_input(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -193,64 +270,64 @@ class DrugDosageChatbot:
         # Process disease (required)
         disease = str(input_data.get('disease', '')).lower().strip()
         if not disease:
-            raise ValueError("Disease is required")
+            raise ValueError("Disease/condition is required for dosage prediction.")
         
         # Map to standard disease name if possible
         std_disease = None
         for d, m in self.valid_diseases.items():
-            if d in disease:
+            if d in disease or disease in d:
                 std_disease = d
-                processed['medicine'] = m
                 break
         
         if std_disease is None:
-            # If disease not recognized, use the first one as default
-            std_disease = next(iter(self.valid_diseases))
-            processed['medicine'] = self.valid_diseases[std_disease]
+            raise ValueError(f"Unsupported disease: {disease}. " +
+                           f"Supported diseases are: {', '.join(self.valid_diseases.keys())}.")
         
         processed['disease'] = std_disease
         
         # Process medicine (optional, will be set based on disease if not provided)
         if 'medicine' in input_data and input_data['medicine']:
             medicine = str(input_data['medicine']).lower().strip()
-            # Check if the provided medicine matches the expected one for the disease
-            expected_medicine = self.valid_diseases.get(std_disease, '')
-            if expected_medicine not in medicine:  # If the provided medicine doesn't match expected
-                print(f"Warning: Expected medicine for {std_disease} is {expected_medicine}, "
-                      f"but got {medicine}. Using {expected_medicine} instead.")
+            # Validate medicine
+            if std_disease in self.valid_diseases and self.valid_diseases[std_disease] != medicine:
+                print(f"Warning: Suggested medicine ({medicine}) is not standard for {std_disease}. " +
+                      f"Using standard medicine: {self.valid_diseases[std_disease]}")
+        
+        # Use standard medicine for the disease
+        processed['medicine'] = self.valid_diseases[std_disease]
         
         # Process age (optional)
         if 'age' in input_data and input_data['age'] is not None:
             try:
                 age = float(input_data['age'])
                 if age <= 0 or age > 120:
-                    print(f"Warning: Age {age} is outside the expected range (1-120). Using None.")
+                    print(f"Warning: Age ({age}) is outside normal range. Using default.")
                 else:
                     processed['age'] = age
             except (ValueError, TypeError):
-                print(f"Warning: Could not parse age '{input_data['age']}'. Using None.")
+                print(f"Warning: Invalid age value: {input_data['age']}. Using default.")
         
         # Process weight (optional)
         if 'weight' in input_data and input_data['weight'] is not None:
             try:
                 weight = float(input_data['weight'])
-                if weight <= 0 or weight > 300:  # kg
-                    print(f"Warning: Weight {weight}kg is outside the expected range (1-300kg). Using None.")
+                if weight <= 0 or weight > 500:
+                    print(f"Warning: Weight ({weight}) is outside normal range. Using default.")
                 else:
                     processed['weight'] = weight
             except (ValueError, TypeError):
-                print(f"Warning: Could not parse weight '{input_data['weight']}'. Using None.")
+                print(f"Warning: Invalid weight value: {input_data['weight']}. Using default.")
         
         # Process frequency (optional)
         if 'frequency_per_day' in input_data and input_data['frequency_per_day'] is not None:
             try:
-                freq = int(input_data['frequency_per_day'])
-                if freq < 1 or freq > 4:
-                    print(f"Warning: Frequency {freq} is outside the expected range (1-4). Using default.")
+                frequency = int(input_data['frequency_per_day'])
+                if frequency <= 0 or frequency > 6:
+                    print(f"Warning: Frequency ({frequency}) is outside normal range. Using default.")
                 else:
-                    processed['frequency_per_day'] = freq
+                    processed['frequency_per_day'] = frequency
             except (ValueError, TypeError):
-                print(f"Warning: Could not parse frequency '{input_data['frequency_per_day']}'. Using default.")
+                print(f"Warning: Invalid frequency value: {input_data['frequency_per_day']}. Using default.")
         
         return processed
     
@@ -284,7 +361,8 @@ class DrugDosageChatbot:
 # Example usage
 if __name__ == "__main__":
     # Initialize the chatbot
-    chatbot = DrugDosageChatbot()
+    gemini_api_key = os.getenv('GEMINI_API_KEY')
+    chatbot = DrugDosageChatbot(gemini_api_key=gemini_api_key)
     
     # Example 1: Predict with direct input
     print("Example 1: Direct Input")
@@ -299,13 +377,19 @@ if __name__ == "__main__":
     prediction = chatbot.predict_dosage(input_data)
     print(chatbot.generate_response(prediction))
     
-    print("\n" + "="*80 + "\n")
-    
-    # Example 2: Process a prescription image (uncomment to use)
-    """
-    print("Example 2: Prescription Image")
+    # Example 2: Chat about the prescription
+    print("\nExample 2: Chat about prescription")
     print("-" * 50)
-    image_path = "path/to/prescription.jpg"
-    prediction = chatbot.process_prescription_image(image_path)
-    print(chatbot.generate_response(prediction))
-    """
+    response = chatbot.chat_about_prescription(
+        "What are the side effects of this medication?",
+        prediction.raw_input
+    )
+    print(response)
+    
+    # Example 3: General medical question without prescription
+    print("\nExample 3: General medical question")
+    print("-" * 50)
+    response = chatbot.chat_about_prescription(
+        "What are the best ways to manage diabetes?"
+    )
+    print(response)

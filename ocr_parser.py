@@ -3,7 +3,7 @@ import pytesseract
 from PIL import Image
 import io
 import os
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 import google.generativeai as genai
 from dotenv import load_dotenv
 import json
@@ -82,15 +82,67 @@ class PrescriptionParser:
             Extracted text from the image
         """
         try:
-            # Open the image file
+            # Print Tesseract version and path for debugging
+            print(f"Using Tesseract version: {pytesseract.get_tesseract_version()}")
+            print(f"Tesseract path: {pytesseract.get_tesseract_version()}")
+            
+            # Open and enhance the image
             with Image.open(image_path) as img:
-                # Convert to grayscale for better OCR
-                img_gray = img.convert('L')
-                # Use Tesseract to extract text
-                text = pytesseract.image_to_string(img_gray)
-                return text.strip()
+                # Convert to grayscale
+                img = img.convert('L')
+                
+                # Resize to a reasonable size if too small or too large
+                target_dpi = 300
+                if any(dim < 1000 for dim in img.size):
+                    scale = target_dpi / 72  # Assuming original is 72 DPI
+                    new_size = tuple(int(dim * scale) for dim in img.size)
+                    img = img.resize(new_size, Image.Resampling.LANCZOS)
+                
+                # Try multiple Tesseract configurations
+                configs = [
+                    '--psm 6 --oem 3',  # Assume uniform block of text
+                    '--psm 3 --oem 3',  # Automatic page segmentation
+                    '--psm 4 --oem 3',  # Assume single column of text
+                ]
+                
+                best_text = ""
+                best_conf = 0
+                
+                for config in configs:
+                    try:
+                        # Get text and confidence scores
+                        text = pytesseract.image_to_string(img, config=config)
+                        data = pytesseract.image_to_data(
+                            img,
+                            config=config,
+                            output_type=pytesseract.Output.DICT
+                        )
+                        
+                        # Calculate average confidence
+                        conf_scores = [int(conf) for conf in data['conf'] if conf != '-1']
+                        if conf_scores:
+                            avg_conf = sum(conf_scores) / len(conf_scores)
+                            print(f"Config '{config}' confidence: {avg_conf:.2f}%")
+                            
+                            # Keep the result with highest confidence
+                            if avg_conf > best_conf:
+                                best_conf = avg_conf
+                                best_text = text
+                    except Exception as e:
+                        print(f"Config '{config}' failed: {str(e)}")
+                        continue
+                
+                # If we got any valid text, return it
+                if best_text:
+                    print(f"Best OCR confidence: {best_conf:.2f}%")
+                    return best_text.strip()
+                else:
+                    raise ValueError("No valid text extracted from any configuration")
+                    
         except Exception as e:
-            raise Exception(f"Error extracting text from image: {str(e)}")
+            error_msg = f"Error extracting text from image: {str(e)}"
+            print(error_msg)  # For debugging
+            raise Exception(error_msg)
     
     def preprocess_text(self, text: str) -> str:
         """
@@ -159,32 +211,145 @@ class PrescriptionParser:
         except Exception as e:
             raise Exception(f"Error parsing with Gemini: {str(e)}")
     
-    def parse_prescription(self, image_path: str, use_gemini: bool = True) -> Dict[str, Any]:
+    def parse_prescription(self, image_path: str, use_gemini: bool = False) -> Dict[str, Any]:
         """
-        Parse a prescription image and return structured data.
+        Parse a prescription image using OCR and basic text extraction.
         
         Args:
             image_path: Path to the prescription image
-            use_gemini: Whether to use Gemini API for parsing (more accurate but requires API key)
+            use_gemini: Ignored parameter kept for compatibility
             
         Returns:
-            Dictionary containing parsed prescription information
+            Dictionary containing extracted information
         """
-        # Extract text from image
+        # Extract text from image using Tesseract
         raw_text = self.extract_text_from_image(image_path)
-        
-        # Preprocess the text
+        if not raw_text:
+            return {'error': 'No text could be extracted from the image'}
+            
+        # Clean the text
         cleaned_text = self.preprocess_text(raw_text)
         
-        # Parse using Gemini if available and requested
-        if use_gemini and self.gemini_api_key:
-            try:
-                return self.parse_with_gemini(cleaned_text)
-            except Exception as e:
-                print(f"Warning: Gemini parsing failed, falling back to regex: {str(e)}")
+        # Initialize the result dictionary
+        result = {
+            'raw_ocr_text': raw_text,
+            'cleaned_text': cleaned_text,
+            'extracted_items': {
+                'possible_medicines': [],
+                'possible_diseases': [],
+                'possible_dosages': [],
+                'dates': [],
+                'possible_numbers': [],
+                'possible_names': []
+            },
+            'medicines': [],
+            'confidence': {},
+            'lines': []
+        }
         
-        # Fall back to regex-based parsing
-        return self.parse_with_regex(cleaned_text)
+        # Split into lines for structured display
+        lines = cleaned_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line:  # Only add non-empty lines
+                result['lines'].append(line)
+        
+        # Try to identify dates
+        date_patterns = [
+            r'\d{1,2}[-/]\d{1,2}[-/]\d{2,4}',
+            r'\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{2,4}'
+        ]
+        for line in lines:
+            for pattern in date_patterns:
+                matches = re.finditer(pattern, line, re.IGNORECASE)
+                for match in matches:
+                    result['extracted_items']['dates'].append(match.group())
+        
+        # Try to identify possible names (capitalized words)
+        name_pattern = r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b'
+        for line in lines:
+            matches = re.finditer(name_pattern, line)
+            for match in matches:
+                name = match.group()
+                if len(name) > 3:  # Avoid short abbreviations
+                    result['extracted_items']['possible_names'].append(name)
+        
+        # Try to identify disease/condition
+        diseases = self.extract_disease_from_text(cleaned_text)
+        if diseases:
+            result['disease'] = diseases
+            result['extracted_items']['possible_diseases'].extend(
+                [d.strip() for d in diseases.split(',') if d.strip()]
+            )
+        
+        # Try to identify medicine names and dosages
+        medicines = self.extract_medicines_from_text(cleaned_text)
+        if medicines:
+            result['medicines'] = medicines
+            for med in medicines:
+                result['extracted_items']['possible_medicines'].append(med['name'])
+                if 'dosage' in med:
+                    result['extracted_items']['possible_dosages'].append(med['dosage'])
+        
+        # Extract any numbers that might be dosages
+        number_pattern = r'\b\d+(?:\.\d+)?\s*(?:mg|g|ml|mcg|tablet|capsule|pill)s?\b'
+        for line in lines:
+            matches = re.finditer(number_pattern, line, re.IGNORECASE)
+            for match in matches:
+                result['extracted_items']['possible_numbers'].append(match.group())
+        
+        # Remove duplicates while preserving order
+        for key in result['extracted_items']:
+            result['extracted_items'][key] = list(dict.fromkeys(result['extracted_items'][key]))
+        
+        return result
+            
+    def extract_disease_from_text(self, text: str) -> Optional[str]:
+        """Extract disease/condition from text."""
+        # Common disease keywords and patterns
+        disease_patterns = [
+            r'(?:diagnosis|condition|assessment|impression)[\s:]+([^\n.]+)',
+            r'(?:for|treating|treatment\s+of)\s+([^\n.]+)',
+            r'(?:diagnosed\s+with)\s+([^\n.]+)',
+        ]
+        
+        for pattern in disease_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                disease = match.group(1).strip()
+                return disease.lower()
+        
+        return None
+        
+    def extract_medicines_from_text(self, text: str) -> List[Dict[str, Any]]:
+        """Extract medicine names and dosage information from text."""
+        medicines = []
+        
+        # Common medicine line patterns
+        med_patterns = [
+            r'(\b[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+(?:\.\d+)?)\s*(mg|g|ml|mcg)',
+            r'(\b[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+(?:\.\d+)?)\s*(tablet|capsule|pill)s?',
+        ]
+        
+        lines = text.split('\n')
+        for line in lines:
+            for pattern in med_patterns:
+                matches = re.finditer(pattern, line, re.IGNORECASE)
+                for match in matches:
+                    medicine_name = match.group(1).strip()
+                    dosage = f"{match.group(2)}{match.group(3)}"
+                    
+                    # Map to generic name if possible
+                    generic_name = self.medicine_mapping.get(medicine_name.lower(), medicine_name)
+                    
+                    medicine_info = {
+                        'name': generic_name,
+                        'dosage': dosage,
+                        'original_text': line.strip()
+                    }
+                    medicines.append(medicine_info)
+                    
+        return medicines
     
     def parse_with_regex(self, text: str) -> Dict[str, Any]:
         """

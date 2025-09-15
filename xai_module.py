@@ -9,7 +9,7 @@ class DosageExplainer:
     A class to explain dosage predictions using SHAP values.
     """
     
-    def __init__(self, model_path: str = 'dosage_predictor.joblib'):
+    def __init__(self, model_path: str = 'models/dosage_predictor.joblib'):
         """
         Initialize the explainer with a trained model.
         
